@@ -36,6 +36,7 @@ setup(
         "zeep",
         "fastapi",
         "tabulate",
+        "beautifulsoup4"
     ],
     include_package_data=True,
     classifiers=[

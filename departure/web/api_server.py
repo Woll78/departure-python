@@ -15,6 +15,7 @@ import departure.provider.sncf.server as sncf_server
 import departure.provider.tfl_tube.server as tfl_tube_server
 import departure.provider.transilien.server as transilien_server
 import departure.provider.ns.server as ns_server
+import departure.provider.nexus.server as nexus_server
 from departure.board import board_client
 from departure.commons.log import init_logging
 from . import admin
@@ -36,6 +37,7 @@ app.include_router(sncf_server.router, prefix="/sncf")
 app.include_router(tfl_tube_server.router, prefix="/tfl-tube")
 app.include_router(transilien_server.router, prefix="/transilien")
 app.include_router(ns_server.router, prefix="/ns")
+app.include_router(nexus_server.router, prefix="/nexus")
 
 
 @app.post("/stop-client")
