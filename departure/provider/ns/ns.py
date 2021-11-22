@@ -59,9 +59,9 @@ def stops(train_number: str) -> list:
 
     schedule = []
     for stop in journey_json["payload"]["stops"]:
-        if "arrivals" in stop:
+        if "arrivals" in stop and len(stop["arrivals"]) > 0:
             direction = "arrivals"
-        elif "departures" in stop:
+        elif "departures" in stop and len(stop["departures"]) > 0:
             direction = "departures"
         else:
             continue
