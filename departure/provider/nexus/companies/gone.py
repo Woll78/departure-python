@@ -21,6 +21,8 @@ class GONE:
 
         journey_elements = board_markup.findAll('a', class_='single-visit')
 
+        bus_objects = []
+
         for visit_element in journey_elements:
 
             bus_content = visit_element.find('div',
@@ -37,4 +39,6 @@ class GONE:
 
             journey = BusData(number, destination, time, "Go North East")
 
-            yield journey
+            bus_objects.append(journey)
+
+        return bus_objects

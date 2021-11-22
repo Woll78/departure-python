@@ -4,11 +4,11 @@ import grpc
 
 import departure.board.view_model as view_model
 import departure.board.contents as contents
-import departure.commons.helpers as helpers
 
 import departure.board.departure_pb2 as departure_pb2
 import departure.board.departure_pb2_grpc as departure_pb2_grpc  # for type hinting
 import departure.board.protobuf as protobuf
+from departure.provider.nexus.bus_data_model import BusData
 
 logger = logging.getLogger(__name__)
 
@@ -29,16 +29,16 @@ class ViewModelNexusBus_192_32(ViewModelNexusBus):
                 "green": (0, 255, 0),
                 "white": (255, 255, 255),
             },
-            tabs=[[0, "l"], [4, "l"], [15, "l"], [191, "r"]],
+            tabs=[[0, "l"], [38, "r"], [43, "l"], [191, "r"]],
         )
 
-    def pixels_single_line(self, bus, pos: str):
+    def pixels_single_line(self, bus:BusData, pos: str):
         return self.board_text.colour_text_tabbed_row_pixels(
             [
                 [pos, "orange"],
                 [bus.number, "white"],
-                [bus.destination, "orange"],
-                [bus.timeLiteral, "orange"],
+                [bus.destination, "orange", 95],
+                [bus.timeLiteral, "green"],
             ]
         )
 
@@ -50,15 +50,20 @@ class ViewModelNexusBus_192_32(ViewModelNexusBus):
         # sort trains by time to station
         # next_trains = sorted(next_trains.values(), key=lambda a: a["time_to_station"])
 
+       # next_busses = [] 
+       # next_busses.append(BusData(99, "Hermagor", "2 mins", "Postbus"))
+
         # top section
         if len(next_busses) == 0:  # "No service" if no service
-            top_section_content_pixels = []
-            top_section_content_pixels_size = (0, 0)
+            (
+                top_section_content_pixels,
+                top_section_content_pixels_size,
+            ) = self.board_text.colour_text_pixels([["No service.", "orange"]])
         else:  # otherwise: 1st train
             (
                 top_section_content_pixels,
                 top_section_content_pixels_size,
-            ) = self.pixels_single_line(next_busses[0], "1")
+            ) = self.pixels_single_line(next_busses[0], "1st")
 
         # middle section
         if len(next_busses) < 2:  # nothing if fewer than 2 trains
@@ -68,7 +73,7 @@ class ViewModelNexusBus_192_32(ViewModelNexusBus):
             (
                 middle_section_content_pixels,
                 middle_section_content_pixels_size,
-            ) = self.pixels_single_line(next_busses[1], "2")
+            ) = self.pixels_single_line(next_busses[1], "2nd")
 
         # bottom section
         if len(next_busses) < 3:  # nothing if fewer than 3 trains
@@ -79,7 +84,7 @@ class ViewModelNexusBus_192_32(ViewModelNexusBus):
             (
                 bottom_section_content_pixels,
                 bottom_section_content_pixels_size,
-            ) = self.pixels_single_line(next_busses[1], "3")
+            ) = self.pixels_single_line(next_busses[2], "3rd")
 
         else:  # 3rd-4th trains (if more than 3 trains)
             (
@@ -88,21 +93,21 @@ class ViewModelNexusBus_192_32(ViewModelNexusBus):
             ) = self.board_text.colour_text_tabbed_rows_pixels(
                 [
                     [
-                        ["3", "orange"],
+                        ["3rd", "orange"],
                         [next_busses[2].number, "white"],
-                        [next_busses[2].destination, "orange"],
+                        [next_busses[2].destination, "orange", 95],
                         [
                             next_busses[2].timeLiteral,
-                            "orange",
+                            "green",
                         ],
                     ],
                     [
-                        ["4", "orange"],
+                        ["4th", "orange"],
                         [next_busses[3].number, "white"],
-                        [next_busses[3].destination, "orange"],
+                        [next_busses[3].destination, "orange", 95],
                         [
                             next_busses[3].timeLiteral,
-                            "orange",
+                            "green",
                         ],
                     ],
                 ],

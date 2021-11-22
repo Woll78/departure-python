@@ -38,9 +38,13 @@ class Stagecoach:
         destination = json_extract(bus_data, 'destinationDisplay')        
         cancelled = json_extract(bus_data, 'cancelled')             
 
+        bus_objects = []
+
         for i in range(len(departure_time)):
             journey = BusData(number[i], destination[i], calculate_departure_time(departure_time[i]), "Stagecoach")
-            yield journey
+            bus_objects.append(journey)
+
+        return bus_objects
 
 
 def calculate_departure_time(departure_time):

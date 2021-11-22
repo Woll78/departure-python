@@ -15,10 +15,10 @@ class DataUpdaterNexusBus(data_updater.DataUpdater):
         target_view_model: view_model.ViewModelNexusBus,
         data_refresh_delay_in_s: int,
         end_event: threading.Event,
-        station_id: str,
+        stop_code: str,
     ):
         super().__init__(target_view_model, data_refresh_delay_in_s, end_event)
-        self.station_id = station_id
+        self.stop_code = stop_code
         self.services = None
 
     def update(self):
@@ -26,7 +26,7 @@ class DataUpdaterNexusBus(data_updater.DataUpdater):
         logger.info("data refresh started at %s", update_start_time)
 
         try:
-            services = nexus.next_services(self.station_id)
+            services = nexus.next_services(self.stop_code)
 
             # debugging: capture list of services to string, then log
             log_function_stdout_to_debug(logger, ui.list_services, services)

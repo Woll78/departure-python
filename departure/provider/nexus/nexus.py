@@ -12,7 +12,7 @@ def check_params(stop_code: str) -> None:
         try:
             _ = stations[stop_code]
         except Exception:
-            raise commons.NationalRailException(
+            raise commons.NexusBusException(
                 f"invalid station code {stop_code}"
             ) from Exception
 

@@ -44,13 +44,12 @@ async def next_departures(stop_code):
 @router.post("/start-client")
 async def start_client(stop: Stop, request: Request):
     # check parameters
-    stop_code = stop.code.upper()
-    try:
-        commons.check_env_vars()
-        nexus.check_params(stop_code)
-    except commons.NexusBusException as e:
-        logger.warning(str(e))
-        return {"status": "error", "message": str(e)}
+    stop_code = stop.code
+    #try:
+    #    nexus.check_params(stop_code)
+    #except commons.NexusBusException as e:
+    #    logger.warning(str(e))
+    #    return {"status": "error", "message": str(e)}
 
     # stop board client if already running
     if request.app.board_client.running:
@@ -61,7 +60,7 @@ async def start_client(stop: Stop, request: Request):
     threading.Thread(
         target=request.app.board_client.run,
         args=[
-            view_model.ViewModelNationalRail_192_32_3_Rows_To_ProtocolBuffers,
+            view_model.ViewModelNexusBus_192_32_3_Rows_To_ProtocolBuffers,
             data_updater.DataUpdaterNexusBus,
             {"stop_code": stop_code},
         ],
