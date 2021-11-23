@@ -45,11 +45,11 @@ async def next_departures(stop_code):
 async def start_client(stop: Stop, request: Request):
     # check parameters
     stop_code = stop.code
-    #try:
-    #    nexus.check_params(stop_code)
-    #except commons.NexusBusException as e:
-    #    logger.warning(str(e))
-    #    return {"status": "error", "message": str(e)}
+    try:
+        nexus.check_params(stop_code)
+    except commons.NexusBusException as e:
+        logger.warning(str(e))
+        return {"status": "error", "message": str(e)}
 
     # stop board client if already running
     if request.app.board_client.running:

@@ -4,7 +4,6 @@ import csv
 
 STATION_CODES_FILENAME = "data/stops.csv"
 
-
 def _stations(station_codes_filename):
     station_codes_path = pathlib.Path(__file__).parents[0] / station_codes_filename
 
@@ -14,7 +13,7 @@ def _stations(station_codes_filename):
         next(reader, None)  # skip header row
         stations = {}
         for row in reader:
-            stations[row[0]] = row[2], row[5]
+            stations[row[0]] = row[1]
 
     return stations
 

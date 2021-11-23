@@ -65,6 +65,7 @@ def services_from_station_board_with_details(station_board_with_details):
 
 
 def next_services(station_code: str) -> List[Any]:
+    search = stations_by_string("newc")
     # check parameters
     check_params(station_code)
 

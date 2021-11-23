@@ -13,7 +13,7 @@ def check_params(stop_code: str) -> None:
             _ = stations[stop_code]
         except Exception:
             raise commons.NexusBusException(
-                f"invalid station code {stop_code}"
+                f"invalid stop code {stop_code}"
             ) from Exception
 
 
@@ -22,12 +22,11 @@ def stations_by_string(string):
     results = {}
     stations = data.STATIONS
 
-    key_list = list(stations.keys())
-    val_list = list(stations.values())
-
-# print key with val 100
-    position = val_list.index(string)
-    print(key_list[position])
+    # iterate over stations
+    for station_id in stations:
+        # match?
+        if string in stations[station_id].lower():
+            results[station_id] = stations[station_id]
 
     return results
 
@@ -41,6 +40,7 @@ def departures(stop_code: str) -> List[BusData]:
  
 
 def next_services(stop_code: str) -> List[BusData]:
+
     # check parameters
     check_params(stop_code)
 
