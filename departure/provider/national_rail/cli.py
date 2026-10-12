@@ -43,7 +43,12 @@ def next_services(station_id):
     Use search to find the STATION_ID for a station.
     """
 
-    services = national_rail.next_services(station_id.upper())
+    try:
+        services = national_rail.next_services(station_id.upper())
+    except commons.NationalRailException as e:
+        print(f"error: {str(e)}")
+        return
+
     ui.list_services(services)
 
 
