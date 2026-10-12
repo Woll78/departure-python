@@ -95,3 +95,27 @@ class TestBoardSection:
 
         assert board_section._movement == movement2
         assert board_section._has_changed
+
+
+class TestNoSharedDefaults:
+    def content(self):
+        return board.BoardSectionContent(
+            content_pixels=[], content_w=1, content_h=1
+        )
+
+    def test_sections_get_their_own_default_movement(self):
+        a = board.BoardSection(0, 0, 1, 1, self.content())
+        b = board.BoardSection(0, 0, 1, 1, self.content())
+        assert a._movement is not b._movement
+        assert isinstance(a._movement, movement.NoMovement)
+
+    def test_explicit_movement_is_kept(self):
+        mine = movement.NoMovement()
+        section = board.BoardSection(0, 0, 1, 1, self.content(), mine)
+        assert section._movement is mine
+
+    def test_boards_get_their_own_default_sections_list(self):
+        a = board.Board(board_w=8, board_h=8)
+        b = board.Board(board_w=8, board_h=8)
+        a.sections.append(board.BoardSection(0, 0, 1, 1, self.content()))
+        assert b.sections == []
