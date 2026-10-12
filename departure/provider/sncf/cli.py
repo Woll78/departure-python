@@ -68,6 +68,7 @@ def start_board(stop_area_id):
         sncf.check_params(stop_area_id)
     except commons.SncfException as e:
         logger.error("error: %s", str(e))
+        return
 
     # start board
     board_client_instance = board_client.BoardClient()

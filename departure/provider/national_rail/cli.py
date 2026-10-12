@@ -66,6 +66,7 @@ def start_board(station_id):
         national_rail.check_params(station_id)
     except commons.NationalRailException as e:
         logger.warning("error: %s", str(e))
+        return
 
     # start board
     board_client_instance = board_client.BoardClient()

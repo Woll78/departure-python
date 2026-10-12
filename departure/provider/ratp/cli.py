@@ -120,6 +120,12 @@ def start_board(line_id, line_station_id, direction_code):
     direction command to find the DIRECTION_CODEs for a line.
     """
 
+    try:
+        ratp.check_params(line_id, line_station_id, direction_code)
+    except commons.RatpException as e:
+        logger.error("error: %s", str(e))
+        return
+
     # start board
     board_client_instance = board_client.BoardClient()
     board_client_instance.start(

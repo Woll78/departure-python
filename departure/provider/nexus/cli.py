@@ -63,6 +63,7 @@ def start_board(station_id):
         nexus.check_params(station_id)
     except commons.NexusBusException as e:
         logger.warning("error: %s", str(e))
+        return
 
     # start board
     board_client_instance = board_client.BoardClient()
@@ -70,7 +71,7 @@ def start_board(station_id):
         view_model.ViewModelNexusBus_192_32_3_Rows_To_ProtocolBuffers,
         data_updater.DataUpdaterNexusBus,
         {
-            "station_id": station_id,
+            "stop_code": station_id,
         },
     )
 
