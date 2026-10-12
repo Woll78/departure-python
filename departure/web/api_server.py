@@ -6,7 +6,6 @@ import os
 
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
 from starlette.responses import FileResponse
 
 import departure.provider.national_rail.server as national_rail_server
@@ -68,14 +67,10 @@ def shutdown_board_server():
     return admin.shutdown_board_server()
 
 
-class ShutdownRequest(BaseModel):
-    token: str
-
-
-# curl -X POST http://localhost:8000/shutdown-web-server -d {\"token\":\"...\"}
 @app.post("/shutdown-web-server")
-async def shutdown_web_server(shutdown_request: ShutdownRequest):
-    return admin.shutdown_web_server(shutdown_request.token)
+async def shutdown_web_server():
+    admin.shutdown_web_server()
+    return {"status": "OK"}
 
 
 ### static files second (https://github.com/tiangolo/fastapi/issues/130) if root set
