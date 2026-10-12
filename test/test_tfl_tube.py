@@ -1,5 +1,6 @@
 import json
 import pathlib
+from unittest import mock
 
 import departure.provider.tfl_tube.tfl_tube as tfl_tube
 
@@ -969,6 +970,53 @@ class TestFilterTrainsByDirectionOfDeparture:
         )
 
         assert len(trains) == 0
+
+    arrival = {
+        "lineId": "central",
+        "vehicleId": "114",
+        "naptanId": "940GZZLULGN",
+        "towards": "Northolt",
+        "platformName": "Platform 2/3",
+        "timeToStation": 60,
+    }
+
+    def _filter_with_direction_result(self, result, **kwargs):
+        with mock.patch.object(
+            tfl_tube,
+            "will_arriving_train_depart_from_station_in_direction",
+            return_value=result,
+        ):
+            return tfl_tube.filter_trains_by_direction_of_departure(
+                [self.arrival], "Westbound", **kwargs
+            )
+
+    def test_unknown_direction_included_when_not_conservative(self):
+        assert "central-114" in self._filter_with_direction_result(None)
+
+    def test_unknown_direction_excluded_when_conservative(self):
+        assert not self._filter_with_direction_result(None, conservative=True)
+
+    def test_wrong_direction_excluded(self):
+        assert not self._filter_with_direction_result(False)
+
+
+class TestNextTrains:
+    def test_no_direction_does_not_crash_when_tube_arrivals_unavailable(self):
+        with mock.patch.object(
+            tfl_tube.api, "line_arrivals", return_value=[]
+        ), mock.patch.object(tfl_tube.api, "tube_arrivals", return_value=None):
+            assert tfl_tube.next_trains("central", "940GZZLULGN") == {}
+
+    def test_no_direction_returns_trains_at_platform(self):
+        at_platform = {"central-114": {"vehicle_id": "114"}}
+        with mock.patch.object(
+            tfl_tube.api, "line_arrivals", return_value=[]
+        ), mock.patch.object(
+            tfl_tube.api, "tube_arrivals", return_value=[]
+        ), mock.patch.object(
+            tfl_tube, "filter_trains_currently_at_platform", return_value=at_platform
+        ):
+            assert tfl_tube.next_trains("central", "940GZZLULGN") == at_platform
 
 
 class TestFilterTrainsCurrentlyAtPlatform:

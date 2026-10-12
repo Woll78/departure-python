@@ -171,7 +171,7 @@ def filter_trains_by_direction_of_departure(
         )
 
         # ignore if not departing in requested direction
-        if not will_depart_in_requested_direction:
+        if will_depart_in_requested_direction is False:
             continue
 
         # ignore if can't determine departing direction and conservative
@@ -310,6 +310,7 @@ def next_trains(line_id: str, station_id: str, requested_direction: str = None):
         return {}
 
     # filter by direction if requested
+    trains = {}
     if requested_direction is not None:
         trains = filter_trains_by_direction_of_departure(arrivals, requested_direction)
 
