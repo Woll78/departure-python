@@ -123,6 +123,22 @@ class ViewModelRatp_192_32(ViewModelRatp):  # pylint: disable=abstract-method
             bottom_section_content_pixels_size,
         )
 
+    def unavailable_content(self):
+        # departures could not be fetched: say so rather than "Pas de service"
+        (
+            top_section_content_pixels,
+            top_section_content_pixels_size,
+        ) = self.board_text.colour_text_pixels([["Information indisponible", "orange"]])
+
+        return (
+            top_section_content_pixels,
+            top_section_content_pixels_size,
+            [],
+            (0, 0),
+            [],
+            (0, 0),
+        )
+
 
 class ViewModelRatp_192_32_3_Rows_To_ProtocolBuffers(ViewModelRatp_192_32):
     def __init__(self, board_manager_stub: departure_pb2_grpc.BoardManagerStub):
@@ -159,6 +175,31 @@ class ViewModelRatp_192_32_3_Rows_To_ProtocolBuffers(ViewModelRatp_192_32):
         ]
 
     def update(self, departures):  # pylint: disable=arguments-differ
+        # bottom section: 3rd train onwards or disruptions
+        repeat_x = False
+        repeat_y = False
+
+        if departures is None:
+            next_movement = self.no_movement
+        elif departures["perturbations"]:  # h-scroll if disruptions
+            next_movement = self.horizontal_scroll
+            repeat_x = True
+        elif len(departures["missions"]) <= 3:  # no v-scroll if up to 3 trains
+            next_movement = self.no_movement
+        else:  # v-scroll if more than 3 trains
+            next_movement = self.next_mission_tracker
+            repeat_y = True
+
+        self.send_content(
+            self.next_content(departures), next_movement, repeat_x, repeat_y
+        )
+
+    def update_unavailable(self):
+        self.send_content(self.unavailable_content(), self.no_movement, False, False)
+
+    def send_content(
+        self, content, bottom_movement, bottom_repeat_x: bool, bottom_repeat_y: bool
+    ):
         requests_data = []
 
         (
@@ -168,7 +209,7 @@ class ViewModelRatp_192_32_3_Rows_To_ProtocolBuffers(ViewModelRatp_192_32):
             middle_section_content_pixels_size,
             bottom_section_content_pixels,
             bottom_section_content_pixels_size,
-        ) = self.next_content(departures)
+        ) = content
 
         # top section: 1st train
         requests_data.append(
@@ -205,20 +246,6 @@ class ViewModelRatp_192_32_3_Rows_To_ProtocolBuffers(ViewModelRatp_192_32):
         )
 
         # bottom section: 3rd train onwards or disruptions
-        repeat_x = False
-        repeat_y = False
-
-        if departures is None:
-            next_movement = self.no_movement
-        elif departures["perturbations"]:  # h-scroll if disruptions
-            next_movement = self.horizontal_scroll
-            repeat_x = True
-        elif len(departures["missions"]) <= 3:  # no v-scroll if up to 3 trains
-            next_movement = self.no_movement
-        else:  # v-scroll if more than 3 trains
-            next_movement = self.next_mission_tracker
-            repeat_y = True
-
         requests_data.append(
             departure_pb2.BoardSectionUpdateRequest(
                 section_index=2,
@@ -228,10 +255,10 @@ class ViewModelRatp_192_32_3_Rows_To_ProtocolBuffers(ViewModelRatp_192_32):
                     ),
                     content_w=bottom_section_content_pixels_size[0],
                     content_h=bottom_section_content_pixels_size[1],
-                    repeat_x=repeat_x,
-                    repeat_y=repeat_y,
+                    repeat_x=bottom_repeat_x,
+                    repeat_y=bottom_repeat_y,
                 ),
-                movement=next_movement,
+                movement=bottom_movement,
                 continue_movement=True,
             )
         )

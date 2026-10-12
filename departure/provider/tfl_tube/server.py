@@ -1,5 +1,3 @@
-import threading
-import time
 import logging
 
 from fastapi import APIRouter
@@ -54,7 +52,7 @@ async def next_trains(line_id: str, station_id: str, direction: str):
 # curl -X POST http://localhost:8000/tfl-tube/start-client \
 #   -d {\"line_id\":\"district\", \"station_id\":\"940GZZLUVIC\", \"direction\":\"Westbound\"}
 @router.post("/start-client")
-async def start_client(station_direction: StationDirection, request: Request):
+def start_client(station_direction: StationDirection, request: Request):
     # check params
     try:
         tfl_tube.check_params(
@@ -67,23 +65,15 @@ async def start_client(station_direction: StationDirection, request: Request):
         logger.warning(str(e))
         return {"status": "error", "message": str(e)}
 
-    # stop board client if already running
-    if request.app.board_client.running:
-        request.app.board_client.running = False
-        time.sleep(1)
-
-    # start board
-    threading.Thread(
-        target=request.app.board_client.run,
-        args=[
-            view_model.ViewModelTflTube_192_32_3_Rows_To_ProtocolBuffers,
-            data_updater.DataUpdaterTflTube,
-            {
-                "line_id": station_direction.line_id,
-                "station_id": station_direction.station_id,
-                "direction": station_direction.direction,
-            },
-        ],
-    ).start()
+    # start board, replacing any client already running
+    request.app.board_client.start(
+        view_model.ViewModelTflTube_192_32_3_Rows_To_ProtocolBuffers,
+        data_updater.DataUpdaterTflTube,
+        {
+            "line_id": station_direction.line_id,
+            "station_id": station_direction.station_id,
+            "direction": station_direction.direction,
+        },
+    )
 
     return {"status": "OK"}

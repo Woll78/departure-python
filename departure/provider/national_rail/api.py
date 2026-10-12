@@ -1,4 +1,7 @@
 import os
+
+import requests
+import zeep.exceptions
 from zeep import Client
 from zeep import xsd
 
@@ -31,8 +34,14 @@ def soap_client():
 
 
 def get_departure_board_with_details(station_id: str, num_rows: int = 10):
-    soap_client_dict = soap_client()
+    try:
+        # the WSDL is downloaded when the client is created, so it can fail too
+        soap_client_dict = soap_client()
 
-    return soap_client_dict["client"].service.GetDepBoardWithDetails(
-        crs=station_id, numRows=num_rows, _soapheaders=soap_client_dict["headers"]
-    )
+        return soap_client_dict["client"].service.GetDepBoardWithDetails(
+            crs=station_id, numRows=num_rows, _soapheaders=soap_client_dict["headers"]
+        )
+    except (requests.exceptions.RequestException, zeep.exceptions.Error) as e:
+        raise commons.NationalRailException(
+            f"National Rail API request error: {e}"
+        ) from e

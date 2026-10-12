@@ -2,7 +2,6 @@
 CLI for National Rail
 """
 
-import threading
 import time
 import logging
 
@@ -43,7 +42,12 @@ def next_services(station_id):
     Use search to find the STATION_ID for a station.
     """
 
-    services = national_rail.next_services(station_id.upper())
+    try:
+        services = national_rail.next_services(station_id.upper())
+    except commons.NationalRailException as e:
+        print(f"error: {str(e)}")
+        return
+
     ui.list_services(services)
 
 
@@ -62,20 +66,17 @@ def start_board(station_id):
         national_rail.check_params(station_id)
     except commons.NationalRailException as e:
         logger.warning("error: %s", str(e))
+        return
 
     # start board
     board_client_instance = board_client.BoardClient()
-
-    threading.Thread(
-        target=board_client_instance.run,
-        args=[
-            view_model.ViewModelNationalRail_192_32_3_Rows_To_ProtocolBuffers,
-            data_updater.DataUpdaterNationalRail,
-            {
-                "station_id": station_id,
-            },
-        ],
-    ).start()
+    board_client_instance.start(
+        view_model.ViewModelNationalRail_192_32_3_Rows_To_ProtocolBuffers,
+        data_updater.DataUpdaterNationalRail,
+        {
+            "station_id": station_id,
+        },
+    )
 
     # run until interrupt
     try:
@@ -83,7 +84,7 @@ def start_board(station_id):
             time.sleep(ONE_DAY_IN_SECONDS)
     except KeyboardInterrupt:
         logger.info("received interrupt")
-        board_client_instance.running = False
+        board_client_instance.stop()
 
 
 cli.add_command(search)

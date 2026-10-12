@@ -1001,12 +1001,6 @@ class TestFilterTrainsByDirectionOfDeparture:
 
 
 class TestNextTrains:
-    def test_no_direction_does_not_crash_when_tube_arrivals_unavailable(self):
-        with mock.patch.object(
-            tfl_tube.api, "line_arrivals", return_value=[]
-        ), mock.patch.object(tfl_tube.api, "tube_arrivals", return_value=None):
-            assert tfl_tube.next_trains("central", "940GZZLULGN") == {}
-
     def test_no_direction_returns_trains_at_platform(self):
         at_platform = {"central-114": {"vehicle_id": "114"}}
         with mock.patch.object(

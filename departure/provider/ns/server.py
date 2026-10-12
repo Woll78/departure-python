@@ -1,5 +1,3 @@
-import threading
-import time
 import logging
 
 from fastapi import APIRouter
@@ -51,7 +49,7 @@ async def next_departures(station_code):
 
 # curl -X POST http://localhost:8000/ns/start-client -d {\"code\":\"gvc\"}
 @router.post("/start-client")
-async def start_client(station: Station, request: Request):
+def start_client(station: Station, request: Request):
     # check parameters
     station_code = station.code.upper()
     try:
@@ -61,19 +59,11 @@ async def start_client(station: Station, request: Request):
         logger.warning(str(e))
         return {"status": "error", "message": str(e)}
 
-    # stop board client if already running
-    if request.app.board_client.running:
-        request.app.board_client.running = False
-        time.sleep(1)
-
-    # start board
-    threading.Thread(
-        target=request.app.board_client.run,
-        args=[
-            view_model.ViewModelNS192x32x3ToProtocolBuffers,
-            data_updater.DataUpdaterNS,
-            {"station_code": station_code},
-        ],
-    ).start()
+    # start board, replacing any client already running
+    request.app.board_client.start(
+        view_model.ViewModelNS192x32x3ToProtocolBuffers,
+        data_updater.DataUpdaterNS,
+        {"station_code": station_code},
+    )
 
     return {"status": "OK"}

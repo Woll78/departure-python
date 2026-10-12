@@ -153,6 +153,22 @@ class ViewModelSncf_192_32(ViewModelSncf):
             bottom_section_content_pixels_size,
         )
 
+    def unavailable_content(self):
+        # departures could not be fetched: say so rather than "Pas de service"
+        (
+            top_section_content_pixels,
+            top_section_content_pixels_size,
+        ) = self.board_text.colour_text_pixels([["Information indisponible", "orange"]])
+
+        return (
+            top_section_content_pixels,
+            top_section_content_pixels_size,
+            [],
+            (0, 0),
+            [],
+            (0, 0),
+        )
+
 
 class ViewModelSncf_192_32_3_Rows_To_ProtocolBuffers(ViewModelSncf_192_32):
     def __init__(self, board_manager_stub: departure_pb2_grpc.BoardManagerStub):
@@ -178,6 +194,16 @@ class ViewModelSncf_192_32_3_Rows_To_ProtocolBuffers(ViewModelSncf_192_32):
         ]
 
     def update(self, trains):  # pylint: disable=arguments-differ
+        # v-scroll bottom section only if more than 2 trains
+        self.send_content(
+            self.next_content(trains),
+            scroll_bottom_section=trains is not None and len(trains) > 2,
+        )
+
+    def update_unavailable(self):
+        self.send_content(self.unavailable_content(), scroll_bottom_section=False)
+
+    def send_content(self, content, scroll_bottom_section: bool):
         requests_data = []
 
         (
@@ -187,7 +213,7 @@ class ViewModelSncf_192_32_3_Rows_To_ProtocolBuffers(ViewModelSncf_192_32):
             middle_section_content_pixels_size,
             bottom_section_content_pixels,
             bottom_section_content_pixels_size,
-        ) = self.next_content(trains)
+        ) = content
 
         # top section: 1st train
         requests_data.append(
@@ -231,10 +257,10 @@ class ViewModelSncf_192_32_3_Rows_To_ProtocolBuffers(ViewModelSncf_192_32):
         )
 
         # bottom section: 2nd train onwards
-        if trains is None or len(trains) <= 2:  # no v-scroll if up to 2 trains
-            next_movement = self.no_movement
-        else:  # v-scroll if more than 2 trains
+        if scroll_bottom_section:
             next_movement = self.next_train_tracker
+        else:
+            next_movement = self.no_movement
 
         requests_data.append(
             departure_pb2.BoardSectionUpdateRequest(

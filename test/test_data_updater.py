@@ -1,9 +1,6 @@
 import threading
 from unittest import mock
 
-import pytest
-import requests
-
 from departure.board import data_updater
 
 
@@ -29,23 +26,15 @@ def test_thread_survives_failed_updates_and_keeps_polling():
     assert updater.calls == 3
 
 
-def test_national_rail_requests_connection_error_is_handled():
-    # requests' ConnectionError is not a subclass of the builtin one
-    assert not issubclass(requests.exceptions.ConnectionError, ConnectionError)
+class FailingFailureHandler(FlakyUpdater):
+    def update_failed(self):
+        raise RuntimeError("board unreachable")
 
-    try:
-        from departure.provider.national_rail import (  # pylint: disable=import-outside-toplevel
-            data_updater as nr_data_updater,
-        )
-    except TypeError:  # stale generated departure_pb2 vs. new protobuf
-        pytest.skip("departure_pb2 incompatible with installed protobuf")
 
-    updater = nr_data_updater.DataUpdaterNationalRail(
-        mock.Mock(), 0, threading.Event(), "NCL"
-    )
-    with mock.patch.object(
-        nr_data_updater.national_rail,
-        "next_services",
-        side_effect=requests.exceptions.ConnectionError(),
-    ):
-        updater.update()  # must log a warning, not raise
+def test_thread_survives_failure_in_update_failed():
+    end_event = threading.Event()
+    updater = FailingFailureHandler(end_event, failures=2)
+
+    updater.run()
+
+    assert updater.calls == 3

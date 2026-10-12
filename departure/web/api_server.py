@@ -2,11 +2,11 @@
 # 2) set IP address of board in environment variable DEPARTURE_BOARD_SERVER
 # 3) uvicorn api_server:app --reload --host 0.0.0.0
 
-import time
 import os
 
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel
 from starlette.responses import FileResponse
 
 import departure.provider.national_rail.server as national_rail_server
@@ -40,13 +40,13 @@ app.include_router(ns_server.router, prefix="/ns")
 app.include_router(nexus_server.router, prefix="/nexus")
 
 
-@app.post("/stop-client")
-async def stop_client():
-    # stop board client if running
-    if app.board_client.running:
-        app.board_client.running = False
-        time.sleep(1)
+# handlers that block (gRPC, HTTP) are plain functions so that FastAPI runs
+# them in its threadpool instead of blocking the event loop
 
+
+@app.post("/stop-client")
+def stop_client():
+    app.board_client.stop()
     return {"status": "OK"}
 
 
@@ -58,20 +58,24 @@ async def client_status():
 
 
 @app.get("/board-server-status")
-async def board_server_status():
+def board_server_status():
     return admin.is_board_server_up()
 
 
 @app.post("/shutdown-board-server")
-async def shutdown_board_server():
-    await stop_client()
+def shutdown_board_server():
+    app.board_client.stop()
     return admin.shutdown_board_server()
 
 
+class ShutdownRequest(BaseModel):
+    token: str
+
+
+# curl -X POST http://localhost:8000/shutdown-web-server -d {\"token\":\"...\"}
 @app.post("/shutdown-web-server")
-async def shutdown_web_server():
-    admin.shutdown_web_server()
-    return {"status": "OK"}
+async def shutdown_web_server(shutdown_request: ShutdownRequest):
+    return admin.shutdown_web_server(shutdown_request.token)
 
 
 ### static files second (https://github.com/tiangolo/fastapi/issues/130) if root set

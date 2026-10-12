@@ -41,7 +41,7 @@ class DataUpdaterRatp(data_updater.DataUpdater):
                 self.line_station_id,
                 self.direction,
             )
-            return
+            raise
 
         # debugging: capture list of departures to string, then log
         log_function_stdout_to_debug(logger, ui.list_departures, departures)
@@ -54,3 +54,9 @@ class DataUpdaterRatp(data_updater.DataUpdater):
             self.departures = departures
 
         logger.info("data refresh duration %s", time.monotonic() - update_start_time)
+
+    def update_failed(self):
+        self.view_model.update_unavailable()
+        # forget last departures so the next successful poll always replaces
+        # the "unavailable" message, even if the departures are unchanged
+        self.departures = None

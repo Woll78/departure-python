@@ -2,7 +2,6 @@
 CLI for RATP
 """
 
-import threading
 import time
 import logging
 
@@ -10,7 +9,7 @@ import click
 
 from departure.board import board_client
 
-from . import ui, ratp, view_model, data_updater
+from . import ui, ratp, commons, view_model, data_updater
 
 ONE_DAY_IN_SECONDS = 60 * 60 * 24
 logger = logging.getLogger(__name__)
@@ -97,7 +96,12 @@ def next_departures(line_id, line_station_id, direction):
     direction command to find the DIRECTIONs for a line.
     """
 
-    departures = ratp.next_departures(line_id, line_station_id, direction)
+    try:
+        departures = ratp.next_departures(line_id, line_station_id, direction)
+    except commons.RatpException as e:
+        print(f"error: {str(e)}")
+        return
+
     ui.list_departures(departures)
 
 
@@ -116,21 +120,23 @@ def start_board(line_id, line_station_id, direction_code):
     direction command to find the DIRECTION_CODEs for a line.
     """
 
+    try:
+        ratp.check_params(line_id, line_station_id, direction_code)
+    except commons.RatpException as e:
+        logger.error("error: %s", str(e))
+        return
+
     # start board
     board_client_instance = board_client.BoardClient()
-
-    threading.Thread(
-        target=board_client_instance.run,
-        args=[
-            view_model.ViewModelRatp_192_32_3_Rows_To_ProtocolBuffers,
-            data_updater.DataUpdaterRatp,
-            {
-                "line_id": line_id,
-                "line_station_id": line_station_id,
-                "direction": direction_code,
-            },
-        ],
-    ).start()
+    board_client_instance.start(
+        view_model.ViewModelRatp_192_32_3_Rows_To_ProtocolBuffers,
+        data_updater.DataUpdaterRatp,
+        {
+            "line_id": line_id,
+            "line_station_id": line_station_id,
+            "direction": direction_code,
+        },
+    )
 
     # run until interrupt
     try:
@@ -138,7 +144,7 @@ def start_board(line_id, line_station_id, direction_code):
             time.sleep(ONE_DAY_IN_SECONDS)
     except KeyboardInterrupt:
         logger.info("received interrupt")
-        board_client_instance.running = False
+        board_client_instance.stop()
 
 
 cli.add_command(search)

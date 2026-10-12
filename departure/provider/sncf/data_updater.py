@@ -38,3 +38,9 @@ class DataUpdaterSncf(data_updater.DataUpdater):
             self.trains = trains
 
         logger.info("data refresh duration %s", time.monotonic() - update_start_time)
+
+    def update_failed(self):
+        self.view_model.update_unavailable()
+        # forget last trains so the next successful poll always replaces the
+        # "unavailable" message, even if the trains are unchanged
+        self.trains = None

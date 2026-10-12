@@ -1,5 +1,3 @@
-import threading
-import time
 import logging
 
 from fastapi import APIRouter
@@ -59,7 +57,7 @@ async def next_departures(line_id: str, line_station_id: str, direction: str):
 # curl -X POST http://localhost:8000/ratp/start-client \
 #   -d {\"line_id\":\"RB\", \"line_station_id\":\"15\", \"direction\":\"A\"}
 @router.post("/start-client")
-async def start_client(station_direction: StationDirection, request: Request):
+def start_client(station_direction: StationDirection, request: Request):
     # check params
     try:
         ratp.check_params(
@@ -71,23 +69,15 @@ async def start_client(station_direction: StationDirection, request: Request):
         logger.warning(str(e))
         return {"status": "error", "message": str(e)}
 
-    # stop board client if already running
-    if request.app.board_client.running:
-        request.app.board_client.running = False
-        time.sleep(1)
-
-    # start board
-    threading.Thread(
-        target=request.app.board_client.run,
-        args=[
-            view_model.ViewModelRatp_192_32_3_Rows_To_ProtocolBuffers,
-            data_updater.DataUpdaterRatp,
-            {
-                "line_id": station_direction.line_id,
-                "line_station_id": station_direction.line_station_id,
-                "direction": station_direction.direction,
-            },
-        ],
-    ).start()
+    # start board, replacing any client already running
+    request.app.board_client.start(
+        view_model.ViewModelRatp_192_32_3_Rows_To_ProtocolBuffers,
+        data_updater.DataUpdaterRatp,
+        {
+            "line_id": station_direction.line_id,
+            "line_station_id": station_direction.line_station_id,
+            "direction": station_direction.direction,
+        },
+    )
 
     return {"status": "OK"}
