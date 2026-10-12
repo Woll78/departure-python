@@ -2,7 +2,6 @@
 CLI for Nederlandse Spoorwegen
 """
 
-import threading
 import time
 import logging
 
@@ -75,17 +74,13 @@ def start_board(ns_code):
 
     # start board
     board_client_instance = board_client.BoardClient()
-
-    threading.Thread(
-        target=board_client_instance.run,
-        args=[
-            view_model.ViewModelNS192x32x3ToProtocolBuffers,
-            data_updater.DataUpdaterNS,
-            {
-                "station_code": ns_code,
-            },
-        ],
-    ).start()
+    board_client_instance.start(
+        view_model.ViewModelNS192x32x3ToProtocolBuffers,
+        data_updater.DataUpdaterNS,
+        {
+            "station_code": ns_code,
+        },
+    )
 
     # run until interrupt
     try:
@@ -93,7 +88,7 @@ def start_board(ns_code):
             time.sleep(ONE_DAY_IN_SECONDS)
     except KeyboardInterrupt:
         logger.info("received interrupt")
-        board_client_instance.running = False
+        board_client_instance.stop()
 
 
 cli.add_command(search)

@@ -29,7 +29,7 @@ class DataUpdaterNS(data_updater.DataUpdater):
             departures = ns.departures_with_schedule(self.station_code)
         except commons.NSException as e:
             logger.warning("%s - station code %s", str(e), self.station_code)
-            return
+            raise
 
         # debugging: capture list of services to string, then log
         log_function_stdout_to_debug(
@@ -44,3 +44,9 @@ class DataUpdaterNS(data_updater.DataUpdater):
             self.departures = departures
 
         logger.info("data refresh duration %s", time.monotonic() - update_start_time)
+
+    def update_failed(self):
+        self.view_model.update_unavailable()
+        # forget last departures so the next successful poll always replaces
+        # the "unavailable" message, even if the departures are unchanged
+        self.departures = None

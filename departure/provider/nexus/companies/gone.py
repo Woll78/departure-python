@@ -12,7 +12,8 @@ class GONE:
             #410000010502")
         # Post Office
             #41000010JARA
-        page = requests.get('https://www.gonortheast.co.uk/stops/' + stopId)
+        page = requests.get('https://www.gonortheast.co.uk/stops/' + stopId, timeout=10)
+        page.raise_for_status()
 
         soup = BeautifulSoup(page.content, 'html.parser')
         board_markup = soup.find('div', class_='departure-board')

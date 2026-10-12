@@ -21,18 +21,20 @@ def unified_api_request(base_url: str, base_queries: List[str] = None):
 
     try:
         response = requests.get(url, timeout=15)
-    except requests.exceptions.Timeout:
-        logger.warning("TfL unified API HTTP request timed out")
-        return None
-    except Exception as e:  # pylint: disable=broad-except
-        logger.warning("TfL unified API HTTP request error: %s", str(e))
-        return None
+    except requests.exceptions.Timeout as e:
+        raise commons.TflTubeException("TfL unified API HTTP request timed out") from e
+    except requests.exceptions.RequestException as e:
+        raise commons.TflTubeException(
+            f"TfL unified API HTTP request error: {e}"
+        ) from e
 
     # process response
     if response.status_code == 200:
         return json.loads(response.content.decode("utf-8"))
 
-    return None
+    raise commons.TflTubeException(
+        f"TfL unified API request failed, HTTP response: {response.status_code}"
+    )
 
 
 def line_stoppoints(line_id):

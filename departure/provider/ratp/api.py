@@ -1,6 +1,10 @@
 import os
 
+import requests
+import zeep.exceptions
 from zeep import Client
+
+from . import commons
 
 WSDL_FILENAME = "data/Wsiv.wsdl"
 
@@ -35,7 +39,10 @@ def get_stations_by_name(name_query):
 
 
 def get_missions_next(line_id, station_id, direction_sens):
-    return soap_client().service.getMissionsNext(
-        station={"line": {"id": line_id}, "id": station_id},
-        direction={"sens": direction_sens},
-    )
+    try:
+        return soap_client().service.getMissionsNext(
+            station={"line": {"id": line_id}, "id": station_id},
+            direction={"sens": direction_sens},
+        )
+    except (requests.exceptions.RequestException, zeep.exceptions.Error) as e:
+        raise commons.RatpException(f"RATP API request error: {e}") from e

@@ -122,8 +122,6 @@ def next_trains(stop_area_id: str, timetable_for_all_trains: bool = False):
 
     # get trains departing from station
     departures = api.departures(stop_area_id)
-    if departures is None:
-        return []
 
     trains = []
 

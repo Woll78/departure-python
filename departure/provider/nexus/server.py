@@ -1,5 +1,3 @@
-import threading
-import time
 import logging
 
 from fastapi import APIRouter
@@ -42,7 +40,7 @@ async def next_departures(stop_code):
 
 # curl -X POST http://localhost:8000/nexus/start-client -d {\"code\":\"vic\"}
 @router.post("/start-client")
-async def start_client(stop: Stop, request: Request):
+def start_client(stop: Stop, request: Request):
     # check parameters
     stop_code = stop.code
     try:
@@ -51,19 +49,11 @@ async def start_client(stop: Stop, request: Request):
         logger.warning(str(e))
         return {"status": "error", "message": str(e)}
 
-    # stop board client if already running
-    if request.app.board_client.running:
-        request.app.board_client.running = False
-        time.sleep(1)
-
-    # start board
-    threading.Thread(
-        target=request.app.board_client.run,
-        args=[
-            view_model.ViewModelNexusBus_192_32_3_Rows_To_ProtocolBuffers,
-            data_updater.DataUpdaterNexusBus,
-            {"stop_code": stop_code},
-        ],
-    ).start()
+    # start board, replacing any client already running
+    request.app.board_client.start(
+        view_model.ViewModelNexusBus_192_32_3_Rows_To_ProtocolBuffers,
+        data_updater.DataUpdaterNexusBus,
+        {"stop_code": stop_code},
+    )
 
     return {"status": "OK"}

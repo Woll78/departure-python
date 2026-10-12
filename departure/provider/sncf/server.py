@@ -1,5 +1,3 @@
-import threading
-import time
 import logging
 
 from fastapi import APIRouter
@@ -38,7 +36,7 @@ async def next_trains(stop_area_id):
 
 # curl -X POST http://localhost:8000/sncf/start-client -d {\"stop_area_id\":\"87393702\"}
 @router.post("/start-client")
-async def start_client(station: Station, request: Request):
+def start_client(station: Station, request: Request):
     # check parameters
     stop_area_id = station.stop_area_id
     try:
@@ -48,19 +46,11 @@ async def start_client(station: Station, request: Request):
         logger.warning(str(e))
         return {"status": "error", "message": str(e)}
 
-    # stop board client if already running
-    if request.app.board_client.running:
-        request.app.board_client.running = False
-        time.sleep(1)
-
-    # start board
-    threading.Thread(
-        target=request.app.board_client.run,
-        args=[
-            view_model.ViewModelSncf_192_32_3_Rows_To_ProtocolBuffers,
-            data_updater.DataUpdaterSncf,
-            {"stop_area_id": stop_area_id},
-        ],
-    ).start()
+    # start board, replacing any client already running
+    request.app.board_client.start(
+        view_model.ViewModelSncf_192_32_3_Rows_To_ProtocolBuffers,
+        data_updater.DataUpdaterSncf,
+        {"stop_area_id": stop_area_id},
+    )
 
     return {"status": "OK"}

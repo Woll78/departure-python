@@ -141,6 +141,22 @@ class ViewModelNationalRail_192_32(ViewModelNationalRail):
             bottom_section_content_pixels_size,
         )
 
+    def unavailable_content(self):
+        # departures could not be fetched: say so rather than "No service"
+        (
+            top_section_content_pixels,
+            top_section_content_pixels_size,
+        ) = self.board_text.colour_text_pixels([["Data unavailable", "orange"]])
+
+        return (
+            top_section_content_pixels,
+            top_section_content_pixels_size,
+            [],
+            (0, 0),
+            [],
+            (0, 0),
+        )
+
 
 class ViewModelNationalRail_192_32_3_Rows_To_ProtocolBuffers(
     ViewModelNationalRail_192_32
@@ -169,6 +185,16 @@ class ViewModelNationalRail_192_32_3_Rows_To_ProtocolBuffers(
 
     # pylint: disable=arguments-differ
     def update(self, services):
+        # v-scroll bottom section only if more than 2 trains
+        self.send_content(
+            self.next_content(services),
+            scroll_bottom_section=services is not None and len(services) > 2,
+        )
+
+    def update_unavailable(self):
+        self.send_content(self.unavailable_content(), scroll_bottom_section=False)
+
+    def send_content(self, content, scroll_bottom_section: bool):
         requests_data = []
 
         (
@@ -178,7 +204,7 @@ class ViewModelNationalRail_192_32_3_Rows_To_ProtocolBuffers(
             middle_section_content_pixels_size,
             bottom_section_content_pixels,
             bottom_section_content_pixels_size,
-        ) = self.next_content(services)
+        ) = content
 
         # top section: 1st train
         requests_data.append(
@@ -222,10 +248,10 @@ class ViewModelNationalRail_192_32_3_Rows_To_ProtocolBuffers(
         )
 
         # bottom section: 2nd train onwards
-        if services is None or len(services) <= 2:  # no v-scroll if up to 2 trains
-            next_movement = self.no_movement
-        else:  # v-scroll if more than 2 trains
+        if scroll_bottom_section:
             next_movement = self.next_service_tracker
+        else:
+            next_movement = self.no_movement
 
         requests_data.append(
             departure_pb2.BoardSectionUpdateRequest(

@@ -2,7 +2,6 @@
 CLI for Nexus bus
 """
 
-import threading
 import time
 import logging
 
@@ -40,7 +39,12 @@ def next_services(station_id):
     Use search to find the STATION_ID for a stop.
     """
 
-    services = nexus.next_services(station_id.upper())
+    try:
+        services = nexus.next_services(station_id.upper())
+    except commons.NexusBusException as e:
+        print(f"error: {str(e)}")
+        return
+
     ui.list_services(services)
 
 
@@ -59,20 +63,17 @@ def start_board(station_id):
         nexus.check_params(station_id)
     except commons.NexusBusException as e:
         logger.warning("error: %s", str(e))
+        return
 
     # start board
     board_client_instance = board_client.BoardClient()
-
-    threading.Thread(
-        target=board_client_instance.run,
-        args=[
-            view_model.ViewModelNexusBus_192_32_3_Rows_To_ProtocolBuffers,
-            data_updater.DataUpdaterNexusBus,
-            {
-                "station_id": station_id,
-            },
-        ],
-    ).start()
+    board_client_instance.start(
+        view_model.ViewModelNexusBus_192_32_3_Rows_To_ProtocolBuffers,
+        data_updater.DataUpdaterNexusBus,
+        {
+            "stop_code": station_id,
+        },
+    )
 
     # run until interrupt
     try:
@@ -80,7 +81,7 @@ def start_board(station_id):
             time.sleep(ONE_DAY_IN_SECONDS)
     except KeyboardInterrupt:
         logger.info("received interrupt")
-        board_client_instance.running = False
+        board_client_instance.stop()
 
 
 cli.add_command(search)
