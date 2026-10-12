@@ -37,10 +37,8 @@ def test_api_request_raises_on_http_error():
 
 def test_next_trains_propagates_api_failure():
     # an outage must not be reported as "no trains"
-    with mock.patch.object(
-        sncf.api, "departures", side_effect=commons.SncfException("down")
-    ):
-        with pytest.raises(commons.SncfException):
+    with mock.patch.object(api.requests, "get", return_value=mock.Mock(status_code=503)):
+        with pytest.raises(commons.SncfException, match="503"):
             sncf.next_trains(STOP_AREA_ID)
 
 
