@@ -37,9 +37,6 @@ def next_trains(station_id: str):
     # get trains departing from station
     departures = api.departures(station_id)
 
-    if departures is None:
-        return []
-
     trains = []
 
     for train in departures.iter("train"):

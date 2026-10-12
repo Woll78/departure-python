@@ -18,18 +18,22 @@ def api_request(url: str):
             timeout=15,
             auth=(os.environ["TRANSILIEN_USER"], os.environ["TRANSILIEN_PASSWORD"]),
         )
-    except requests.exceptions.Timeout:
-        logger.warning("Transilien API HTTP request timed out")
-        return None
-    except Exception as e:  # pylint: disable=broad-except
-        logger.warning("Transilien API HTTP request error: %s", str(e))
-        return None
+    except requests.exceptions.Timeout as e:
+        raise commons.TransilienException(
+            "Transilien API HTTP request timed out"
+        ) from e
+    except requests.exceptions.RequestException as e:
+        raise commons.TransilienException(
+            f"Transilien API HTTP request error: {e}"
+        ) from e
 
     # process response
     if response.status_code == 200:
         return ET.fromstring(response.content.decode("utf-8"))
 
-    return None
+    raise commons.TransilienException(
+        f"Transilien API request failed, HTTP response: {response.status_code}"
+    )
 
 
 def departures(station_id):
