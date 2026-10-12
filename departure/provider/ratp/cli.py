@@ -10,7 +10,7 @@ import click
 
 from departure.board import board_client
 
-from . import ui, ratp, view_model, data_updater
+from . import ui, ratp, commons, view_model, data_updater
 
 ONE_DAY_IN_SECONDS = 60 * 60 * 24
 logger = logging.getLogger(__name__)
@@ -97,7 +97,12 @@ def next_departures(line_id, line_station_id, direction):
     direction command to find the DIRECTIONs for a line.
     """
 
-    departures = ratp.next_departures(line_id, line_station_id, direction)
+    try:
+        departures = ratp.next_departures(line_id, line_station_id, direction)
+    except commons.RatpException as e:
+        print(f"error: {str(e)}")
+        return
+
     ui.list_departures(departures)
 
 
