@@ -40,7 +40,12 @@ def next_services(station_id):
     Use search to find the STATION_ID for a stop.
     """
 
-    services = nexus.next_services(station_id.upper())
+    try:
+        services = nexus.next_services(station_id.upper())
+    except commons.NexusBusException as e:
+        print(f"error: {str(e)}")
+        return
+
     ui.list_services(services)
 
 
