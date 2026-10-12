@@ -1,0 +1,6 @@
+# development and test dependencies
+# runtime dependencies are declared in setup.py (install_requires)
+-e .
+build
+httpx
+pytest
