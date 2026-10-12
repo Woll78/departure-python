@@ -76,13 +76,7 @@ class ViewModelTransilien_192_32(ViewModelTransilien):
             bottom_section_content_pixels = []
             bottom_section_content_pixels_size = (0, 0)
 
-        elif len(trains) == 2:  # 3rd train (if only 3 trains)
-            (
-                bottom_section_content_pixels,
-                bottom_section_content_pixels_size,
-            ) = self.pixels_train_overview(trains[2], 3)
-
-        else:  # 3rd train onwards (if more than 2 trains) - limit 10
+        else:  # 3rd to 10th trains
             (
                 bottom_section_content_pixels,
                 bottom_section_content_pixels_size,
