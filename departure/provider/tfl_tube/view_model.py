@@ -51,8 +51,10 @@ class ViewModelTflTube_192_32(ViewModelTflTube):
 
         # top section
         if len(next_trains) == 0:  # "No service" if no service
-            top_section_content_pixels = []
-            top_section_content_pixels_size = (0, 0)
+            (
+                top_section_content_pixels,
+                top_section_content_pixels_size,
+            ) = self.board_text.colour_text_pixels([["No service", "orange"]])
         else:  # otherwise: 1st train
             (
                 top_section_content_pixels,
@@ -78,7 +80,7 @@ class ViewModelTflTube_192_32(ViewModelTflTube):
             (
                 bottom_section_content_pixels,
                 bottom_section_content_pixels_size,
-            ) = self.pixels_single_line(next_trains[1], "3")
+            ) = self.pixels_single_line(next_trains[2], "3")
 
         else:  # 3rd-4th trains (if more than 3 trains)
             (
