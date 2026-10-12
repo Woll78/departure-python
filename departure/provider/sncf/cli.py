@@ -49,7 +49,12 @@ def next_departures(stop_area_id, timetable_for_all_trains):
     Use search to find the STOP_AREA_ID for a station.
     """
 
-    trains = sncf.next_trains(stop_area_id, timetable_for_all_trains)
+    try:
+        trains = sncf.next_trains(stop_area_id, timetable_for_all_trains)
+    except commons.SncfException as e:
+        print(f"error: {str(e)}")
+        return
+
     ui.list_trains(trains)
 
 

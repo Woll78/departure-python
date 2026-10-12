@@ -19,18 +19,18 @@ def api_request(url: str):
             # http://doc.navitia.io/#authentication
             auth=(os.environ["SNCF_KEY"], ""),
         )
-    except requests.exceptions.Timeout:
-        logger.warning("SNCF API HTTP request timed out")
-        return None
-    except Exception as e:  # pylint: disable=broad-except
-        logger.warning("SNCF API HTTP request error: %s", str(e))
-        return None
+    except requests.exceptions.Timeout as e:
+        raise commons.SncfException("SNCF API HTTP request timed out") from e
+    except requests.exceptions.RequestException as e:
+        raise commons.SncfException(f"SNCF API HTTP request error: {e}") from e
 
     # process response
     if response.status_code == 200:
         return json.loads(response.content.decode("utf-8"))
 
-    return None
+    raise commons.SncfException(
+        f"SNCF API request failed, HTTP response: {response.status_code}"
+    )
 
 
 def departures(station_id):

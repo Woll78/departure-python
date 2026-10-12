@@ -29,6 +29,20 @@ def test_thread_survives_failed_updates_and_keeps_polling():
     assert updater.calls == 3
 
 
+class FailingFailureHandler(FlakyUpdater):
+    def update_failed(self):
+        raise RuntimeError("board unreachable")
+
+
+def test_thread_survives_failure_in_update_failed():
+    end_event = threading.Event()
+    updater = FailingFailureHandler(end_event, failures=2)
+
+    updater.run()
+
+    assert updater.calls == 3
+
+
 def test_national_rail_requests_connection_error_is_handled():
     # requests' ConnectionError is not a subclass of the builtin one
     assert not issubclass(requests.exceptions.ConnectionError, ConnectionError)

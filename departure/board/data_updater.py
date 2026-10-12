@@ -29,6 +29,10 @@ class DataUpdater(threading.Thread):
             except Exception:  # pylint: disable=broad-except
                 # one bad poll must not end the thread and freeze the board
                 logger.exception("data update failed, will retry")
+                try:
+                    self.update_failed()
+                except Exception:  # pylint: disable=broad-except
+                    logger.exception("could not show data update failure")
 
             if next_loop_start_time > time.monotonic():
                 self.end_event.wait(next_loop_start_time - time.monotonic())
@@ -39,3 +43,8 @@ class DataUpdater(threading.Thread):
 
     def update(self):
         raise NotImplementedError()
+
+    def update_failed(self):
+        # called after update() raises; override to stop the board showing
+        # data from before the failure as if it were live
+        pass
