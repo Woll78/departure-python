@@ -27,24 +27,49 @@ class Stagecoach:
         # Adding empty header as parameters are being sent in payload
         #payload = {"StopMonitorRequest":{"header":{"retailOperation":"","channel":"","ipAddress":""},"lookAheadMinutes":60,"stopMonitorQueries":{"stopMonitorQuery":[{"stopPointLabel":"41000010JARB","servicesFilters":{"servicesFilter":[]}}]}}}
         payload = {"StopMonitorRequest":{"header":{"retailOperation":"","channel":"","ipAddress":""},"lookAheadMinutes":60,"stopMonitorQueries":{"stopMonitorQuery":[{"stopPointLabel":stopId,"servicesFilters":{"servicesFilter":[]}}]}}}
-        response = requests.post(url, data=json.dumps(payload), headers=headers)
-     #   print(response.content)
+        response = requests.post(url, data=json.dumps(payload), headers=headers, timeout=10)
+        response.raise_for_status()
 
-        bus_data = json.loads(response.content)  
+        bus_data = json.loads(response.content)
 
-        # print(bus_data)      
-        departure_time = json_extract(bus_data, 'expectedDepartureTime')
-        number = json_extract(bus_data, 'lineRef')
-        destination = json_extract(bus_data, 'destinationDisplay')        
-        cancelled = json_extract(bus_data, 'cancelled')             
+        return [
+            BusData(j['number'], j['destination'], calculate_departure_time(j['time']), "Stagecoach")
+            for j in extract_journeys(bus_data)
+            if not j['cancelled']
+        ]
 
-        bus_objects = []
 
-        for i in range(len(departure_time)):
-            journey = BusData(number[i], destination[i], calculate_departure_time(departure_time[i]), "Stagecoach")
-            bus_objects.append(journey)
+def extract_journeys(obj):
+    """Return one dict per journey, keeping each journey's fields together.
 
-        return bus_objects
+    A journey is the lowest node whose subtree holds both an
+    expectedDepartureTime and a lineRef, so a journey missing a field can't
+    shift the fields of the journeys after it.
+    """
+    if isinstance(obj, dict):
+        children = obj.values()
+    elif isinstance(obj, list):
+        children = obj
+    else:
+        return []
+
+    journeys = [j for child in children for j in extract_journeys(child)]
+    if journeys:
+        return journeys
+
+    times = json_extract(obj, 'expectedDepartureTime')
+    numbers = json_extract(obj, 'lineRef')
+    if not times or not numbers:
+        return []
+
+    destinations = json_extract(obj, 'destinationDisplay')
+    cancelled = json_extract(obj, 'cancelled')
+    return [{
+        'time': times[0],
+        'number': numbers[0],
+        'destination': destinations[0] if destinations else '',
+        'cancelled': bool(cancelled) and str(cancelled[0]).lower() == 'true',
+    }]
 
 
 def calculate_departure_time(departure_time):

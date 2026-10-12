@@ -31,13 +31,28 @@ class BoardText:
             if glyph.data[y] & (1 << (glyph.bbW - x - 1))
         ]
 
+    def _glyph(self, char):
+        # fonts only cover some characters (e.g. no accents or CJK): fall back
+        # to "?" so one odd station name doesn't break the whole board
+        for candidate in (char, "?"):
+            try:
+                return self.font[ord(candidate)]
+            except KeyError:
+                pass
+        return None
+
+    def _line_height(self):
+        return self.font[b"FONT_ASCENT"] + self.font[b"FONT_DESCENT"]
+
     def monochrome_text_pixels(
         self, text, colour=(255, 255, 255), max_width=0  # 0 == no max width
     ):
         pixels = []
         advance = 0
         for c in text:
-            glyph = self.font[ord(c)]
+            glyph = self._glyph(c)
+            if glyph is None:
+                continue
             pixels += self._glyph_pixels(
                 glyph, advance, self.font[b"FONT_ASCENT"] - 1, colour
             )
@@ -51,7 +66,7 @@ class BoardText:
         if self.colour_map is None:
             raise BoardTextException("missing colour map")
 
-        x_size, y_size = 0, 0
+        x_size, y_size = 0, self._line_height()
         output_pixels = []
 
         for text_part in text_array:
@@ -65,7 +80,7 @@ class BoardText:
             )
             output_pixels += [(x + x_size, y, c) for x, y, c in pixels]
             x_size += size[0]
-        y_size = size[1]
+            y_size = size[1]
         return output_pixels, (x_size, y_size)
 
     def colour_text_tabbed_row_pixels(self, text_row):
@@ -74,6 +89,7 @@ class BoardText:
 
         output_pixels = []
         x_size = 0
+        y_size = self._line_height()
         for i, text_part in enumerate(text_row):
             tab_pos, tab_type = self.tabs[i]
             text, colour = text_part[:2]
@@ -97,7 +113,7 @@ class BoardText:
                 # extend width as needed
                 x_size = max(x_size, tab_pos + 1)
 
-        y_size = size[1]
+            y_size = size[1]
 
         return output_pixels, (x_size, y_size)
 

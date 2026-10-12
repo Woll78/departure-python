@@ -1,6 +1,7 @@
-from typing import Tuple, List
+from typing import Tuple, List, Optional
 
 import departure.board.movement as movement
+from departure.board.movement import NoMovement
 
 Pixel = Tuple[int, int, Tuple[int, int, int]]
 Pixels = List[Pixel]
@@ -102,7 +103,7 @@ class BoardSection:
         output_w: int,
         output_h: int,
         content: BoardSectionContent,
-        movement: movement.Movement = movement.NoMovement(),
+        movement: Optional[movement.Movement] = None,
     ):
         # area on the departure board where this section is displayed
         self.output_x = output_x
@@ -113,8 +114,8 @@ class BoardSection:
         # content to be displayed in this section
         self._content = content
 
-        # movement class
-        self._movement = movement
+        # movement class (fresh instance per section: movements hold state)
+        self._movement = movement if movement is not None else NoMovement()
 
         # pixels in absolute coordinates
         self.section_pixels = None
@@ -216,10 +217,15 @@ class BoardSection:
 
 
 class Board:
-    def __init__(self, board_w: int, board_h: int, sections: List[BoardSection] = []):
+    def __init__(
+        self,
+        board_w: int,
+        board_h: int,
+        sections: Optional[List[BoardSection]] = None,
+    ):
         self.board_w = board_w
         self.board_h = board_h
-        self.sections = sections
+        self.sections = sections if sections is not None else []
         self.display_pixels = None
         self._has_changed = True
 

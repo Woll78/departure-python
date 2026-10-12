@@ -217,6 +217,5 @@ class ViewModelNexusBus_192_32_3_Rows_To_ProtocolBuffers(ViewModelNexusBus_192_3
             self.board_manager_stub.BoardSectionsUpdate(
                 departure_pb2.BoardSectionsUpdateRequest(requests=requests_data)
             )
-        # pylint: disable=protected-access
-        except (grpc._channel._Rendezvous, grpc._channel._InactiveRpcError):
+        except grpc.RpcError:
             logger.warning("connection to board failed")

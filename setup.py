@@ -27,8 +27,8 @@ setup(
     },
     install_requires=[
         "requests",
-        "protobuf",
-        "grpcio",
+        "protobuf>=7.35.1",
+        "grpcio>=1.84.0",
         "bdflib",
         "click",
         "uvicorn",
@@ -44,5 +44,5 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    python_requires='>=3.6',
+    python_requires='>=3.10',
 )

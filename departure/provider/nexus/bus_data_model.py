@@ -1,3 +1,4 @@
+import re
 import time
 import datetime as datetime
 
@@ -14,13 +15,20 @@ def prepare_departure_time(timeLiteral):
   now = datetime.datetime.today()
 
   if isTimeFormat(timeLiteral):
-    dueAt = now.date() + time.strptime(timeLiteral, '%H:%M')
+    parsed = datetime.datetime.strptime(timeLiteral, '%H:%M').time()
+    dueAt = datetime.datetime.combine(now.date(), parsed)
+    if dueAt < now:
+      dueAt += datetime.timedelta(days = 1)
     return dueAt
   else:
     if timeLiteral == 'Due':
       dueMinutes = 0
-    else: 
-      dueMinutes = [int(word) for word in timeLiteral.split() if word.isdigit()][0]
+    else:
+      match = re.search(r'-?\d+', timeLiteral)
+      if match is None:
+        # e.g. "Cancelled": no due time, sort after real departures
+        return datetime.datetime.max
+      dueMinutes = max(0, int(match.group()))
 
     dueAt = now + datetime.timedelta(minutes = dueMinutes)
     return dueAt
