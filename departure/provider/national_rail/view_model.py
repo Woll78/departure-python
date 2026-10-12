@@ -247,6 +247,5 @@ class ViewModelNationalRail_192_32_3_Rows_To_ProtocolBuffers(
             self.board_manager_stub.BoardSectionsUpdate(
                 departure_pb2.BoardSectionsUpdateRequest(requests=requests_data)
             )
-        # pylint: disable=protected-access
-        except (grpc._channel._Rendezvous, grpc._channel._InactiveRpcError):
+        except grpc.RpcError:
             logger.warning("connection to board failed")
