@@ -2,6 +2,8 @@ import time
 import threading
 import logging
 
+import requests
+
 import departure.board.data_updater as data_updater
 from departure.commons.log import log_function_stdout_to_debug
 from . import national_rail, view_model, ui
@@ -38,7 +40,7 @@ class DataUpdaterNationalRail(data_updater.DataUpdater):
                 self.view_model.update(services)
                 self.services = services
 
-        except ConnectionError:
+        except (ConnectionError, requests.exceptions.RequestException):
             logger.warning(
                 "connection to National Rail failed after %s",
                 time.monotonic() - update_start_time,

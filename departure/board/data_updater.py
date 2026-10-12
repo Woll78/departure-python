@@ -24,7 +24,11 @@ class DataUpdater(threading.Thread):
             loop_start_time = time.monotonic()
             next_loop_start_time = loop_start_time + self.data_refresh_delay_in_s
 
-            self.update()
+            try:
+                self.update()
+            except Exception:  # pylint: disable=broad-except
+                # one bad poll must not end the thread and freeze the board
+                logger.exception("data update failed, will retry")
 
             if next_loop_start_time > time.monotonic():
                 self.end_event.wait(next_loop_start_time - time.monotonic())
