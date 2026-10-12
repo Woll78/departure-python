@@ -1,4 +1,3 @@
-import hmac
 import os
 import json
 import logging
@@ -80,18 +79,5 @@ def is_board_server_up() -> dict:
     return {"status": "error", "message": response.status_code}
 
 
-def shutdown_web_server(token: str) -> dict:
-    # fail closed: an unset or empty token must not allow anyone to shut down
-    expected_token = os.environ.get("DEPARTURE_BOARD_RSHUTDOWN_TOKEN")
-    if not expected_token:
-        return {
-            "status": "error",
-            "message": "missing DEPARTURE_BOARD_RSHUTDOWN_TOKEN env var",
-        }
-
-    if not hmac.compare_digest(token.encode("utf-8"), expected_token.encode("utf-8")):
-        logger.warning("web server shutdown refused: invalid token")
-        return {"status": "error", "message": "invalid token"}
-
+def shutdown_web_server():
     os.system("sudo shutdown -h now")
-    return {"status": "OK"}
