@@ -306,8 +306,6 @@ def next_trains(line_id: str, station_id: str, requested_direction: str = None):
 
     # get trains arriving at station
     arrivals = api.line_arrivals(line_ids, station_id=station_id)
-    if arrivals is None:
-        return {}
 
     # filter by direction if requested
     trains = {}
@@ -316,8 +314,6 @@ def next_trains(line_id: str, station_id: str, requested_direction: str = None):
 
     # get all trains including those at station of interest
     arrivals = api.tube_arrivals(count=2)  # use -1 for debugging
-    if arrivals is None:
-        return trains
 
     # filter by current station (and direction of departure if requested)
     trains_currently_at_platform = filter_trains_currently_at_platform(
