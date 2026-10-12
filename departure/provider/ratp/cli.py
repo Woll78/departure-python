@@ -2,7 +2,6 @@
 CLI for RATP
 """
 
-import threading
 import time
 import logging
 
@@ -123,19 +122,15 @@ def start_board(line_id, line_station_id, direction_code):
 
     # start board
     board_client_instance = board_client.BoardClient()
-
-    threading.Thread(
-        target=board_client_instance.run,
-        args=[
-            view_model.ViewModelRatp_192_32_3_Rows_To_ProtocolBuffers,
-            data_updater.DataUpdaterRatp,
-            {
-                "line_id": line_id,
-                "line_station_id": line_station_id,
-                "direction": direction_code,
-            },
-        ],
-    ).start()
+    board_client_instance.start(
+        view_model.ViewModelRatp_192_32_3_Rows_To_ProtocolBuffers,
+        data_updater.DataUpdaterRatp,
+        {
+            "line_id": line_id,
+            "line_station_id": line_station_id,
+            "direction": direction_code,
+        },
+    )
 
     # run until interrupt
     try:
@@ -143,7 +138,7 @@ def start_board(line_id, line_station_id, direction_code):
             time.sleep(ONE_DAY_IN_SECONDS)
     except KeyboardInterrupt:
         logger.info("received interrupt")
-        board_client_instance.running = False
+        board_client_instance.stop()
 
 
 cli.add_command(search)

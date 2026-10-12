@@ -2,7 +2,6 @@
 # 2) set IP address of board in environment variable DEPARTURE_BOARD_SERVER
 # 3) uvicorn api_server:app --reload --host 0.0.0.0
 
-import time
 import os
 
 from fastapi import FastAPI
@@ -41,13 +40,13 @@ app.include_router(ns_server.router, prefix="/ns")
 app.include_router(nexus_server.router, prefix="/nexus")
 
 
-@app.post("/stop-client")
-async def stop_client():
-    # stop board client if running
-    if app.board_client.running:
-        app.board_client.running = False
-        time.sleep(1)
+# handlers that block (gRPC, HTTP) are plain functions so that FastAPI runs
+# them in its threadpool instead of blocking the event loop
 
+
+@app.post("/stop-client")
+def stop_client():
+    app.board_client.stop()
     return {"status": "OK"}
 
 
@@ -59,13 +58,13 @@ async def client_status():
 
 
 @app.get("/board-server-status")
-async def board_server_status():
+def board_server_status():
     return admin.is_board_server_up()
 
 
 @app.post("/shutdown-board-server")
-async def shutdown_board_server():
-    await stop_client()
+def shutdown_board_server():
+    app.board_client.stop()
     return admin.shutdown_board_server()
 
 

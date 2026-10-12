@@ -1,5 +1,3 @@
-import threading
-import time
 import logging
 
 from fastapi import APIRouter
@@ -39,7 +37,7 @@ async def next_trains(station_id):
 
 # curl -X POST http://localhost:8000/transilien/start-client -d {\"station_id\":\"87384008\"}
 @router.post("/start-client")
-async def start_client(station: Station, request: Request):
+def start_client(station: Station, request: Request):
     # check parameters
     station_id = station.station_id
     try:
@@ -49,19 +47,11 @@ async def start_client(station: Station, request: Request):
         logger.warning(str(e))
         return {"status": "error", "message": str(e)}
 
-    # stop board client if already running
-    if request.app.board_client.running:
-        request.app.board_client.running = False
-        time.sleep(1)
-
-    # start board
-    threading.Thread(
-        target=request.app.board_client.run,
-        args=[
-            view_model.ViewModelTransilien_192_32_3_Rows_To_ProtocolBuffers,
-            data_updater.DataUpdaterTransilien,
-            {"station_id": station_id},
-        ],
-    ).start()
+    # start board, replacing any client already running
+    request.app.board_client.start(
+        view_model.ViewModelTransilien_192_32_3_Rows_To_ProtocolBuffers,
+        data_updater.DataUpdaterTransilien,
+        {"station_id": station_id},
+    )
 
     return {"status": "OK"}

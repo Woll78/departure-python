@@ -1,5 +1,3 @@
-import threading
-import time
 import logging
 
 from fastapi import APIRouter
@@ -42,7 +40,7 @@ async def next_departures(station_code):
 
 # curl -X POST http://localhost:8000/national-rail/start-client -d {\"code\":\"vic\"}
 @router.post("/start-client")
-async def start_client(station: Station, request: Request):
+def start_client(station: Station, request: Request):
     # check parameters
     station_code = station.code.upper()
     try:
@@ -52,19 +50,11 @@ async def start_client(station: Station, request: Request):
         logger.warning(str(e))
         return {"status": "error", "message": str(e)}
 
-    # stop board client if already running
-    if request.app.board_client.running:
-        request.app.board_client.running = False
-        time.sleep(1)
-
-    # start board
-    threading.Thread(
-        target=request.app.board_client.run,
-        args=[
-            view_model.ViewModelNationalRail_192_32_3_Rows_To_ProtocolBuffers,
-            data_updater.DataUpdaterNationalRail,
-            {"station_id": station_code},
-        ],
-    ).start()
+    # start board, replacing any client already running
+    request.app.board_client.start(
+        view_model.ViewModelNationalRail_192_32_3_Rows_To_ProtocolBuffers,
+        data_updater.DataUpdaterNationalRail,
+        {"station_id": station_code},
+    )
 
     return {"status": "OK"}
