@@ -7,6 +7,7 @@ This Python package provides a CLI, a web API server, and library, to:
 
 Departure has out-of-the-box support for the following operators:
 
+- [Bus services in Kent](https://www.stagecoachbus.com/) (UK, Stagecoach),
 - [London Underground](https://tfl.gov.uk/modes/tube/) (UK),
 - [National Rail](https://www.nationalrail.co.uk/) (UK),
 - [Nederlandse Spoorwegen](https://www.ns.nl/) (Netherlands)
