@@ -21,7 +21,7 @@ HEADER = xsd.Element(
     ),
 )
 
-WSDL = "http://lite.realtime.nationalrail.co.uk/OpenLDBWS/wsdl.aspx?ver=2017-10-01"
+WSDL = "https://lite.realtime.nationalrail.co.uk/OpenLDBWS/wsdl.aspx?ver=2017-10-01"
 
 
 def soap_client():
