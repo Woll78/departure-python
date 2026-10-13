@@ -33,7 +33,13 @@ class Stagecoach:
         bus_data = json.loads(response.content)
 
         return [
-            BusData(j['number'], j['destination'], calculate_departure_time(j['time']), "Stagecoach")
+            BusData(
+                j['number'],
+                j['destination'],
+                calculate_departure_time(j['time']),
+                "Stagecoach",
+                calculate_delay_minutes(j['aimed'], j['time']),
+            )
             for j in extract_journeys(bus_data)
             if not j['cancelled']
         ]
@@ -62,14 +68,33 @@ def extract_journeys(obj):
     if not times or not numbers:
         return []
 
+    aimed_times = json_extract(obj, 'aimedDepartureTime')
     destinations = json_extract(obj, 'destinationDisplay')
     cancelled = json_extract(obj, 'cancelled')
     return [{
         'time': times[0],
+        'aimed': aimed_times[0] if aimed_times else None,
         'number': numbers[0],
         'destination': destinations[0] if destinations else '',
         'cancelled': bool(cancelled) and str(cancelled[0]).lower() == 'true',
     }]
+
+
+def calculate_delay_minutes(aimed_time, expected_time):
+    """Whole minutes the bus runs behind its timetable; 0 if on time, early or unknown."""
+    if not aimed_time:
+        return 0
+
+    time_format = '%Y-%m-%dT%H:%M:%SZ'
+    try:
+        delay = (
+            datetime.datetime.strptime(expected_time, time_format)
+            - datetime.datetime.strptime(aimed_time, time_format)
+        )
+    except ValueError:
+        return 0
+
+    return max(0, int(delay.total_seconds() / 60))
 
 
 def calculate_departure_time(departure_time):

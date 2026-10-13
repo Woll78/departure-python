@@ -96,3 +96,54 @@ def test_list_services_omits_operator(capsys):
     ui.list_services([BusData("44", "Canterbury", "10 mins", "Stagecoach")])
 
     assert capsys.readouterr().out == "1st 44 Canterbury 10 mins\n"
+
+
+# board display
+
+
+def test_kent_destination_allows_one_more_character_than_nexus():
+    from departure.provider.kent.view_model import (
+        ViewModelKentBus_192_32_3_Rows_To_ProtocolBuffers,
+    )
+    from departure.provider.nexus.view_model import ViewModelNexusBus_192_32
+
+    assert ViewModelNexusBus_192_32.DESTINATION_MAX_WIDTH == 95
+    assert (
+        ViewModelKentBus_192_32_3_Rows_To_ProtocolBuffers.DESTINATION_MAX_WIDTH == 101
+    )
+
+
+def test_kent_long_destination_is_cut_off_later_than_nexus():
+    from departure.provider.kent.view_model import (
+        ViewModelKentBus_192_32_3_Rows_To_ProtocolBuffers,
+    )
+    from departure.provider.nexus.view_model import ViewModelNexusBus_192_32
+
+    bus = BusData("1", "W" * 40, "2 mins", "Operator")
+
+    nexus_pixels, _ = ViewModelNexusBus_192_32().pixels_single_line(bus, "1st")
+    kent_pixels, _ = ViewModelKentBus_192_32_3_Rows_To_ProtocolBuffers(
+        mock.Mock()
+    ).pixels_single_line(bus, "1st")
+
+    # the extra character is drawn, so Kent has more lit pixels
+    assert len(kent_pixels) > len(nexus_pixels)
+
+
+def test_delayed_bus_time_is_red_and_on_time_bus_time_is_green():
+    from departure.provider.nexus.view_model import ViewModelNexusBus_192_32
+
+    view_model = ViewModelNexusBus_192_32()
+    red, green = (255, 0, 0), (0, 255, 0)
+
+    late_pixels, _ = view_model.pixels_single_line(
+        BusData("44", "Canterbury", "10 mins", "Stagecoach", delay_minutes=1), "1st"
+    )
+    on_time_pixels, _ = view_model.pixels_single_line(
+        BusData("44", "Canterbury", "10 mins", "Stagecoach"), "1st"
+    )
+
+    late_colours = {colour for _, _, colour in late_pixels}
+    on_time_colours = {colour for _, _, colour in on_time_pixels}
+    assert red in late_colours and green not in late_colours
+    assert green in on_time_colours and red not in on_time_colours

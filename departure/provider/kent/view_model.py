@@ -6,4 +6,5 @@ from departure.provider.nexus import view_model as nexus_view_model
 class ViewModelKentBus_192_32_3_Rows_To_ProtocolBuffers(
     nexus_view_model.ViewModelNexusBus_192_32_3_Rows_To_ProtocolBuffers
 ):
-    pass
+    # one more 6px character than Nexus, so Kent destinations are cut off later
+    DESTINATION_MAX_WIDTH = 101

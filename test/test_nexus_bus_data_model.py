@@ -57,3 +57,15 @@ class TestBusDataSorting:
         ]
         ordered = [b.number for b in sorted(buses, key=lambda b: b.time)]
         assert ordered[-1] == "1"
+
+
+class TestIsDelayed:
+    def test_on_time_bus_is_not_delayed(self):
+        assert not BusData("1", "A", "5 mins", "x").is_delayed
+        assert not BusData("1", "A", "5 mins", "x", delay_minutes=0).is_delayed
+
+    def test_one_minute_late_is_delayed(self):
+        assert BusData("1", "A", "5 mins", "x", delay_minutes=1).is_delayed
+
+    def test_much_later_is_delayed(self):
+        assert BusData("1", "A", "5 mins", "x", delay_minutes=12).is_delayed

@@ -20,6 +20,9 @@ class ViewModelNexusBus(view_model.ViewModel):
 
 # pylint: disable=abstract-method
 class ViewModelNexusBus_192_32(ViewModelNexusBus):
+    # pixels after which a destination is cut off
+    DESTINATION_MAX_WIDTH = 95
+
     def __init__(self):
         self.board_text = contents.BoardText(
             font=contents.read_bdf_font("fonts/6x10_proportional.bdf"),
@@ -37,8 +40,8 @@ class ViewModelNexusBus_192_32(ViewModelNexusBus):
             [
                 [pos, "orange"],
                 [bus.number, "white"],
-                [bus.destination, "orange", 95],
-                [bus.timeLiteral, "green"],
+                [bus.destination, "orange", self.DESTINATION_MAX_WIDTH],
+                [bus.timeLiteral, "red" if bus.is_delayed else "green"],
             ]
         )
 
@@ -95,19 +98,19 @@ class ViewModelNexusBus_192_32(ViewModelNexusBus):
                     [
                         ["3rd", "orange"],
                         [next_busses[2].number, "white"],
-                        [next_busses[2].destination, "orange", 95],
+                        [next_busses[2].destination, "orange", self.DESTINATION_MAX_WIDTH],
                         [
                             next_busses[2].timeLiteral,
-                            "green",
+                            "red" if next_busses[2].is_delayed else "green",
                         ],
                     ],
                     [
                         ["4th", "orange"],
                         [next_busses[3].number, "white"],
-                        [next_busses[3].destination, "orange", 95],
+                        [next_busses[3].destination, "orange", self.DESTINATION_MAX_WIDTH],
                         [
                             next_busses[3].timeLiteral,
-                            "green",
+                            "red" if next_busses[3].is_delayed else "green",
                         ],
                     ],
                 ],
