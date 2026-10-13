@@ -8,6 +8,7 @@ This is the documentation for the Python Departure package.
 
 Register for the transport operators you want to get information from (registration is free for all the listed transport operators at the time of writing):
 
+- Kent buses – No registration needed.
 - London Underground (TfL Tube) – Register for a Transport for London (TfL) Unified API application key at https://api-portal.tfl.gov.uk/, and you will receive an application key by email.
 - National Rail –  Register for access to the National Rail Enquiries OpenLDBWS at http://realtime.nationalrail.co.uk/OpenLDBWSRegistration/, and you will receive an email containing a token.
 - Nederlandse Spoorwegen – Sign up on the NS API portal at https://apiportal.ns.nl/, register for the Ns-App product (https://apiportal.ns.nl/products), and retrieve your API key from your profile page.
@@ -48,6 +49,7 @@ There are three command line interface tools:
 
 Before running `departure` or `departure-web`, set the following environment variables (see below for further instructions) for the public transport operators of interest:
 
+- Kent buses – No environment variable is needed.
 - London Underground (TfL Tube) – Set the `TFL_APP_KEY` environment variable to your TfL Unified API application key.
 - National Rail – Set the `LDB_TOKEN` environment variable to your National Rail token.
 - Nederlandse Spoorwegen – Set the `NS_API_KEY` environment variable to your NS API key.
@@ -97,6 +99,15 @@ $ departure sncf search paris
 
 
 
+The following commands search for Kent bus stops containing "stone cross", then update a departure board with departures at Stone Cross. Only Stagecoach services are shown at present.
+
+```
+$ departure kent search "stone cross"
+$ departure kent board 2400A045760A
+```
+
+
+
 The following command shows the next departures at Den Haag Centraal (NL).
 
 ```
@@ -124,6 +135,16 @@ $ departure sncf board 87391003
 ```
 
 The `departure <operator> board` commands require a running a Departure board server on a physical or virtual departure board – see below for Python Departure board servers and https://github.com/spujadas/departure-board-servers-cpp for C++ Departure board servers.
+
+
+
+#### Rebuilding the Kent stops list
+
+The built-in list of Kent bus stops is derived from NaPTAN (National Public Transport Access Nodes, published by the DfT via data.gov.uk). To rebuild it from a fresh `240Stops.csv` extract:
+
+```
+$ python scripts/build_kent_stops.py <NaPTAN 240Stops.csv> departure/provider/kent/data/stops.csv
+```
 
 
 

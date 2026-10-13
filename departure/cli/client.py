@@ -8,6 +8,7 @@ from departure.provider.sncf import cli as sncf
 from departure.provider.tfl_tube import cli as tfl_tube
 from departure.provider.transilien import cli as transilien
 from departure.provider.nexus import cli as nexus
+from departure.provider.kent import cli as kent
 
 
 # initialise logging
@@ -31,6 +32,7 @@ entry_point.add_command(ratp.cli, name="ratp")
 entry_point.add_command(sncf.cli, name="sncf")
 entry_point.add_command(transilien.cli, name="transilien")
 entry_point.add_command(nexus.cli, name="nexus")
+entry_point.add_command(kent.cli, name="kent")
 
 
 if __name__ == "__main__":

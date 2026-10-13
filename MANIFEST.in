@@ -1,3 +1,4 @@
+include departure/provider/kent/data/stops.csv
 include departure/provider/national_rail/data/station_codes.csv
 include departure/provider/nexus/data/stops.csv
 include departure/provider/ns/data/stations-2020-01-nl.csv

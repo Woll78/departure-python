@@ -15,6 +15,7 @@ import departure.provider.tfl_tube.server as tfl_tube_server
 import departure.provider.transilien.server as transilien_server
 import departure.provider.ns.server as ns_server
 import departure.provider.nexus.server as nexus_server
+import departure.provider.kent.server as kent_server
 from departure.board import board_client
 from departure.commons.log import init_logging
 from . import admin
@@ -37,6 +38,7 @@ app.include_router(tfl_tube_server.router, prefix="/tfl-tube")
 app.include_router(transilien_server.router, prefix="/transilien")
 app.include_router(ns_server.router, prefix="/ns")
 app.include_router(nexus_server.router, prefix="/nexus")
+app.include_router(kent_server.router, prefix="/kent")
 
 
 # handlers that block (gRPC, HTTP) are plain functions so that FastAPI runs

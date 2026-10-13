@@ -1,0 +1,2 @@
+class KentBusException(Exception):
+    pass
